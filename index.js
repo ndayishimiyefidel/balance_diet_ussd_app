@@ -106,34 +106,31 @@ app.post('/ussd', async (req, res) => {
 });
 
 function paginateRecipeResponse(recipe, index, total, showFullDetails) {
-    let recipeText = `Recipe ${index}/${total}`;
+    let recipeText = `Recipe ${index} of ${total}\n`;
 
-    // If the user wants to see more details (pressed 99)
+    // Show full details (ingredients) if user pressed 99
     if (showFullDetails) {
-        // Show more ingredients or details of the recipe
         const ingredientsToShow = recipe.ingredients.slice(5); // Show ingredients from index 6 onwards
-        recipeText += `\nMore Ingredients:\n${ingredientsToShow.map((ingredient, i) => `${i + 6}. ${ingredient}`).join('\n')}`;
-
-        // Include remaining information or details
-        recipeText += `\n\n1-Next | 2-Prev | 99-More details`;
+        recipeText += `More Ingredients:\n${ingredientsToShow.map((ingredient, i) => `${i + 6}. ${ingredient}`).join('\n')}\n`;
     } else {
-        // Show the first part of the recipe, limited to 160 characters
-        recipeText += `\nName: ${recipe.name}\nDescription: ${recipe.description}\nCultural: ${recipe.culturalOrigin}`;
+        // Show the first part of the recipe
+        recipeText += `Name: ${recipe.name}\nDescription: ${recipe.description}\nCultural Origin: ${recipe.culturalOrigin}\n`;
 
         const ingredientsToShow = recipe.ingredients.slice(0, 5); // Show first 5 ingredients
-        recipeText += `\nIngredients (1-5):\n${ingredientsToShow.map((ingredient, i) => `${i + 1}. ${ingredient}`).join(', ')}`;
+        recipeText += `Ingredients (1-5):\n${ingredientsToShow.map((ingredient, i) => `${i + 1}. ${ingredient}`).join(', ')}\n`;
 
         if (recipe.ingredients.length > 5) {
-            recipeText += `\nMore: Press 99`; // Prompt to show more ingredients/details if there are more than 5
+            recipeText += `More ingredients available. Press 99 for more details.\n`;
         }
-        
-        recipeText += `\n\n1-Next | 2-Prev | 99-More details`; // Always show navigation options
     }
 
-    // Ensure response fits within 160 characters for USSD
-    if (recipeText.length > 300) {
-        recipeText = recipeText.substring(0, 290) + '...'; // Truncate if too long
+    // Ensure the content is within 160 characters for USSD
+    if (recipeText.length > 160) {
+        recipeText = recipeText.substring(0, 157) + '...'; // Truncate if necessary
     }
+
+    // Add navigation options clearly and separately
+    recipeText += `\n\n1 - Next Recipe\n2 - Previous Recipe\n99 - More Details`;
 
     return `CON ${recipeText}`;
 }
